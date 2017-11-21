@@ -1058,7 +1058,7 @@ begin
               if Text.Chars[CharIndex].GetUnicodeCategory <> TUnicodeCategory.ucSpaceSeparator then
               begin
                 WordBeginIndex := CharIndex;
-                while (WordBeginIndex > LRun.StartIndex) and (Text.Chars[WordBeginIndex - 1].GetUnicodeCategory <> TUnicodeCategory.ucSpaceSeparator) do
+                while (WordBeginIndex > LRun.StartIndex) and not (Text.Chars[WordBeginIndex - 1].GetUnicodeCategory in [TUnicodeCategory.ucSpaceSeparator, TUnicodeCategory.ucOtherLetter]) do //修正Firemonkey 中英文混排折行 aone
                   Dec(WordBeginIndex);
                 if Text.Chars[WordBeginIndex].IsLowSurrogate then
                   Dec(WordBeginIndex);
