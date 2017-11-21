@@ -16634,6 +16634,14 @@ var
   BIO_ptr_ctrl : function(bp : PBIO; cmd : TIdC_INT; larg : TIdC_LONG) : PIdAnsiChar cdecl = nil;
   {$EXTERNALSYM BIO_int_ctrl}
   BIO_int_ctrl : function(bp : PBIO; cmd : TIdC_INT; larg : TIdC_LONG; iArg : TIdC_INT) : TIdC_LONG cdecl = nil;
+  {$EXTERNALSYM BIO_push}
+  BIO_push : function (b :pBIO; append :pBIO) :pBIO cdecl = nil;
+  {$EXTERNALSYM BIO_pop}
+  BIO_pop : function (b :pBIO) :pBIO cdecl = nil;
+  {$EXTERNALSYM BIO_free_all}
+  BIO_free_all : procedure (a: pBIO) cdecl = nil;
+  {$EXTERNALSYM BIO_set_next}
+  BIO_set_next : function (b :pBIO; next :pBIO) :pBIO cdecl = nil;
   {$EXTERNALSYM BIO_callback_ctrl}
   BIO_callback_ctrl : function(b : PBIO; cmd : TIdC_INT; fp : SSL_callback_ctrl_fp ) : TIdC_LONG cdecl = nil;
   {$EXTERNALSYM BIO_new_file}
@@ -16677,6 +16685,8 @@ var
   _PEM_read_bio_DSAPrivateKey : function(bp : PBIO; x : PPDSA; cb : ppem_password_cb; u : Pointer) : PDSA cdecl = nil;
   {$EXTERNALSYM _PEM_read_bio_PrivateKey}
   _PEM_read_bio_PrivateKey : function(bp : PBIO; x : PPEVP_PKEY; cb : ppem_password_cb; u : Pointer) : PEVP_PKEY cdecl = nil;
+  {$EXTERNALSYM _PEM_read_bio_PUBKEY}
+  _PEM_read_bio_PUBKEY : function(bp : PBIO; x : PPEVP_PKEY; cb : ppem_password_cb; u: Pointer) : PEVP_PKEY cdecl = nil;
   {$EXTERNALSYM _PEM_read_bio_PKCS7}
   _PEM_read_bio_PKCS7 : function(bp : PBIO; x : PPPKCS7; cb : ppem_password_cb; u : Pointer) : PPKCS7 cdecl = nil;
   {$EXTERNALSYM _PEM_read_bio_DHparams}
@@ -16743,6 +16753,8 @@ var
   EVP_DigestUpdate : function (ctx : PEVP_MD_CTX; d : Pointer; cnt : size_t) : TIdC_Int cdecl = nil;
   {$EXTERNALSYM EVP_DigestFinal_ex}
   EVP_DigestFinal_ex : function(ctx : PEVP_MD_CTX; md : PIdAnsiChar; var s : TIdC_UInt) : TIdC_Int cdecl = nil;
+   {$EXTERNALSYM EVP_BytesToKey}
+  EVP_BytesToKey : function(cipher_type: PEVP_CIPHER; md: PEVP_MD; salt: PByte; data: PByte; datal: integer; count: integer; key: PByte; iv: PByte): integer cdecl = nil;
    {$EXTERNALSYM EVP_EncryptInit}
   EVP_EncryptInit : function(ctx : PEVP_CIPHER_CTX;cipher : PEVP_CIPHER;
 		key : PIdAnsiChar; iv : PIdAnsiChar) : TIdC_INT cdecl = nil;
@@ -18523,6 +18535,8 @@ function PEM_read_bio_RSAPublicKey(bp : PBIO; x : PPRSA; cb : ppem_password_cb; 
 function PEM_read_bio_DSAPrivateKey(bp : PBIO; x : PPDSA; cb : ppem_password_cb; u : Pointer) : PDSA;
  {$EXTERNALSYM PEM_read_bio_PrivateKey}
 function PEM_read_bio_PrivateKey(bp : PBIO; x : PPEVP_PKEY; cb : ppem_password_cb; u : Pointer) : PEVP_PKEY;
+ {$EXTERNALSYM PEM_read_bio_PUBKEY}
+function PEM_read_bio_PUBKEY(bp : PBIO; x : PPEVP_PKEY; cb : ppem_password_cb; u: Pointer) : PEVP_PKEY;
  {$EXTERNALSYM PEM_read_bio_PKCS7}
 function PEM_read_bio_PKCS7(bp : PBIO; x : PPPKCS7; cb : ppem_password_cb; u : Pointer) : PPKCS7;
  {$EXTERNALSYM PEM_read_bio_DHparams}
@@ -19691,9 +19705,10 @@ them in case we use them later.}
   fn_BIO_ctrl = 'BIO_ctrl';  {Do not localize}
   fn_BIO_ptr_ctrl = 'BIO_ptr_ctrl';   {Do not localize}
   fn_BIO_int_ctrl = 'BIO_int_ctrl';  {Do not localize}
-  {CH fn_BIO_push = 'BIO_push'; }  {Do not localize}
-  {CH fn_BIO_pop = 'BIO_pop'; }  {Do not localize}
-  {CH fn_BIO_free_all = 'BIO_free_all'; }  {Do not localize}
+  fn_BIO_push = 'BIO_push';   {Do not localize}
+  fn_BIO_pop = 'BIO_pop';   {Do not localize}
+  fn_BIO_free_all = 'BIO_free_all';   {Do not localize}
+  fn_BIO_set_next = 'BIO_set_next';   {Do not localize}
   {CH fn_BIO_find_type = 'BIO_find_type'; }  {Do not localize}
   {CH fn_BIO_get_retry_BIO = 'BIO_get_retry_BIO'; }  {Do not localize}
   {CH fn_BIO_get_retry_reason = 'BIO_get_retry_reason'; }  {Do not localize}
@@ -21836,6 +21851,7 @@ them in case we use them later.}
   fn_PEM_read_bio_DHparams = 'PEM_read_bio_DHparams';   {Do not localize}
   fn_PEM_write_bio_DHparams = 'PEM_write_bio_DHparams';   {Do not localize}
   fn_PEM_read_bio_PrivateKey = 'PEM_read_bio_PrivateKey';  {Do not localize}
+  fn_PEM_read_bio_PUBKEY = 'PEM_read_bio_PUBKEY';  {Do not localize}
   fn_PEM_write_bio_PrivateKey = 'PEM_write_bio_PrivateKey';   {Do not localize}
   fn_PEM_write_bio_PKCS8PrivateKey = 'PEM_write_bio_PKCS8PrivateKey';  {Do not localize}
     {$ENDIF}
@@ -22876,6 +22892,10 @@ we have to handle both cases.
   @BIO_get_ex_data := LoadFunctionCLib(fn_BIO_get_ex_data,False);
   @BIO_ctrl := LoadFunctionCLib(fn_BIO_ctrl);
   @BIO_int_ctrl := LoadFunctionCLib( fn_BIO_int_ctrl, False);
+  @BIO_push := LoadFunctionCLib( fn_BIO_push, False);
+  @BIO_pop := LoadFunctionCLib( fn_BIO_pop, False);
+  @BIO_free_all := LoadFunctionCLib( fn_BIO_free_all, False);
+  @BIO_set_next := LoadFunctionCLib( fn_BIO_set_next, False);
   @BIO_ptr_ctrl := LoadFunctionCLib( fn_BIO_ptr_ctrl,False );
   @BIO_new_file := LoadFunctionCLib(fn_BIO_new_file);
   @BIO_puts := LoadFunctionCLib(fn_BIO_puts,False);
@@ -22940,6 +22960,7 @@ we have to handle both cases.
   @_PEM_read_bio_RSAPublicKey := LoadFunctionCLib(fn_PEM_read_bio_RSAPublicKey, False);
   @_PEM_read_bio_DSAPrivateKey :=  LoadFunctionCLib(fn_PEM_read_bio_DSAPrivateKey, False);
   @_PEM_read_bio_PrivateKey := LoadFunctionCLib (fn_PEM_read_bio_PrivateKey,False);
+  @_PEM_read_bio_PUBKEY := LoadFunctionCLib (fn_PEM_read_bio_PUBKEY,False);
   @_PEM_read_bio_PKCS7 := LoadFunctionCLib (fn_PEM_read_bio_PKCS7, False);
   @_PEM_read_bio_DHparams := LoadFunctionCLib(fn_PEM_read_bio_DHparams, False);
   @_PEM_read_bio_DSAparams := LoadFunctionCLib(fn_PEM_read_bio_DSAparams, False);
@@ -23150,6 +23171,7 @@ we have to handle both cases.
   @EVP_DigestFinal_ex := LoadFunctionCLib(fn_EVP_DigestFinal_ex);
 
 
+  @EVP_BytesToKey := LoadFunctionCLib(fn_EVP_BytesToKey,False);
   @EVP_EncryptInit := LoadFunctionCLib(fn_EVP_EncryptInit,False);
   @EVP_EncryptInit_ex := LoadFunctionCLib(fn_EVP_EncryptInit_ex,False);
   @EVP_EncryptUpdate := LoadFunctionCLib(fn_EVP_EncryptUpdate);
@@ -23615,6 +23637,10 @@ begin
   @BIO_ctrl := nil;
   @BIO_ptr_ctrl := nil;
   @BIO_int_ctrl := nil;
+  @BIO_push := nil;
+  @BIO_pop := nil;
+  @BIO_free_all := nil;
+  @BIO_set_next := nil;
   @BIO_new_file := nil;
   @BIO_puts := nil;
   @BIO_read := nil;
@@ -23679,6 +23705,7 @@ begin
   @_PEM_read_bio_RSAPublicKey := nil;
   @_PEM_read_bio_DSAPrivateKey := nil;
   @_PEM_read_bio_PrivateKey := nil;
+  @_PEM_read_bio_PUBKEY := nil;
   @_PEM_read_bio_PKCS7 := nil;
   @_PEM_read_bio_DHparams := nil;
   @_PEM_read_bio_DSAparams := nil;
@@ -23891,6 +23918,7 @@ begin
   @EVP_DigestUpdate := nil;
   @EVP_DigestFinal_ex := nil;
 
+  @EVP_BytesToKey := nil;
   @EVP_EncryptInit := nil;
   @EVP_EncryptInit_ex := nil;
   @EVP_EncryptUpdate := nil;
@@ -25531,6 +25559,12 @@ begin
   Result := PEM_ASN1_read_bio( d2i_of_void(d2i_PrivateKey), PEM_STRING_EVP_PKEY, bp, Pointer(x),cb, u);
 end;
 
+function PEM_read_bio_PUBKEY(bp : PBIO; x : PPEVP_PKEY; cb : ppem_password_cb; u: Pointer) : PEVP_PKEY;
+{$IFDEF USE_INLINE} inline; {$ENDIF}
+begin
+  Result := PEM_ASN1_read_bio( d2i_of_void(d2i_PublicKey), PEM_STRING_PUBLIC, bp, Pointer(x),cb, u);
+end;
+
 function PEM_read_bio_PKCS7(bp : PBIO; x : PPPKCS7; cb : ppem_password_cb; u : Pointer) : PPKCS7;
 {$IFDEF USE_INLINE} inline; {$ENDIF}
 begin
@@ -25695,6 +25729,12 @@ function PEM_read_bio_PrivateKey(bp : PBIO; x : PPEVP_PKEY; cb : ppem_password_c
 {$IFDEF USE_INLINE} inline; {$ENDIF}
 begin
   Result := _PEM_read_bio_PrivateKey(bp, x, cb, u);
+end;
+
+function PEM_read_bio_PUBKEY(bp : PBIO; x : PPEVP_PKEY; cb : ppem_password_cb; u: Pointer) : PEVP_PKEY;
+{$IFDEF USE_INLINE} inline; {$ENDIF}
+begin
+  Result := _PEM_read_bio_PUBKEY(bp, x, cb, u);
 end;
 
 function PEM_read_bio_PKCS7(bp : PBIO; x : PPPKCS7; cb : ppem_password_cb; u : Pointer) : PPKCS7;
