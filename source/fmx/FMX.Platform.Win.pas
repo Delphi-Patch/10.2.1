@@ -2322,6 +2322,18 @@ begin
                 PaintControl.PaintRects(UpdateRects);
               WindowHandleToPlatform(LForm.Handle).UpdateLayer;
             end;
+          WM_SHOWWINDOW://modify
+            begin
+              if (wParam = SW_SHOWNORMAL) and (lParam = SW_MAXIMIZE) then
+              begin
+                if LForm.WindowState = TWindowState.wsMaximized then
+                begin
+                  Winapi.Windows.ShowWindow(hWnd, SW_SHOWMAXIMIZED);
+                  exit;
+                end;
+              end;
+              Result := DefWindowProc(hwnd, uMsg, wParam, lParam);
+            end;
           WM_WINDOWPOSCHANGING:
             begin
               if ([csLoading, csDesigning] * LForm.ComponentState = [csLoading]) then
@@ -3305,6 +3317,7 @@ procedure TPlatformWin.Activate(const AForm: TCommonCustomForm);
 var
   Wnd: HWND;
 begin
+  Exit;//modify
   Wnd := FormToHWND(AForm);
   if (not IsWindowVisible(Wnd)) or (IsIconic(Wnd)) then
   begin
