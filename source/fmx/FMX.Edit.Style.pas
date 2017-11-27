@@ -2078,6 +2078,7 @@ begin
   Model.SetTextWithoutValidation(CombinedText);
   if FPrompt <> nil then
     FPrompt.Visible := CombinedText.IsEmpty;
+{+++>}{$IF Defined(IOS) or Defined(ANDROID)} // 加入此行, 修正中文输入后会取消原选取文字的 BUG by Aone (2017.11.17)
   if Model.SelLength > 0 then
   begin
     Model.DisableNotify;
@@ -2088,6 +2089,7 @@ begin
     end;
     UpdateSelectionPointPositions;
   end;
+{+++>}{$ENDIF} // 加入此行, 修正中文输入后会取消原选取文字的 BUG by Aone (2017.11.17)
   LinkObserversValueModified(Self.Observers);
   DoChangeTracking;
   DoTyping;

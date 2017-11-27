@@ -2366,10 +2366,12 @@ begin
     end;
     SelectionChanged := FSelected or (FSelStart <> LCaret) or (FSelEnd <> LCaret);
     CaretPosition := LCaret;
+{+++>}{$IF Defined(IOS) or Defined(ANDROID)} // 加入此行, 修正中文输入后会取消原选取文字的 BUG by Aone (2017.11.17)
     FSelStart := LCaret;
     FSelected := False;
     FSelEnd := FSelStart;
     UpdateSelectionInModel;
+{+++>}{$ENDIF} // 加入此行, 修正中文输入后会取消原选取文字的 BUG by Aone (2017.11.17)
 
     if SelectionChanged then
       UpdateSelectionPointPositions;
